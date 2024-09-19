@@ -35,6 +35,7 @@ let white_pieces: Vec<&str> = vec![
 7. get_pieces_of_certain_color(piece: &str, board: &Vec<Vec<String>>) -> Vec<String>
    This function gives all pieces remaining on the board that matches the color that the piece argument has.
 
+
 **Indexing and searching**
 1. Since the positions on a board is traditionally represented as "a1", "b1", "c2" and so on, but an index of the type (i32, i32)
    would be useful for indexing the board, there are functions for converting between the two.
@@ -52,6 +53,7 @@ let white_pieces: Vec<&str> = vec![
       
 5. get_opposite_color(piece: &str) -> String, this function gives the opposite color of the piece argument.
    If the piece taken as input is black the function returns "w".to_string() and the opposite for a white piece.
+
 
 **Moves**
 1. valid_moves(piece_to_move: &str, board: &Vec<Vec<String>>) -> Vec<String>
@@ -73,6 +75,7 @@ let white_pieces: Vec<&str> = vec![
 6. does_not_land_on_other(piece: &str, move_to: (i32, i32), board: &Vec<Vec<String>>) -> bool
    Same as does_not_land_on_own but for a piece of the opposite color.
 
+
 **Check**
 There are four methods used for handling check
 1. is_in_check(piece: &str, board: &Vec<Vec<String>>) -> bool
@@ -88,6 +91,7 @@ There are four methods used for handling check
 
 4. solves_check_all_pieces(piece: String, board: &Vec<Vec<String>>) -> Vec<String>
    This move tries all valid moves for all valid pieces and returns a vector with all the pieces that solves check.
+
    
 **Other**
 1. run_chess() can be used for testing visually but also for running a game of chess.
