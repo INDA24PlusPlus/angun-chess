@@ -57,7 +57,7 @@ pub fn queen_moves(piece: &str, board: &Vec<Vec<String>>) -> Vec<String>{
 
         for dir in directions{
             let move_to = (index.0 + dir.0*i, index.1 + dir.1*i); 
-            if is_within_bounds(move_to){ //Får ej inehålla negativa värden i does_not_land_on_own
+            if is_within_bounds(move_to){ 
                 if !does_not_land_on_own(piece, move_to, board) {
                     match dir {
                         //Bishop
@@ -204,7 +204,7 @@ pub fn bishop_moves(piece: &str, board: &Vec<Vec<String>>) -> Vec<String>{
 
         for dir in directions{
             let move_to = (index.0 + dir.0*i, index.1 + dir.1*i); 
-            if is_within_bounds(move_to){ //Får ej inehålla negativa värden i does_not_land_on_own
+            if is_within_bounds(move_to){ 
                 if !does_not_land_on_own(piece, move_to, board) {
                     match dir {
                         (1, -1) => keep_checking_x_plus_y_minus = false,  
@@ -288,10 +288,12 @@ pub fn pawn_moves(piece: &str, board: &Vec<Vec<String>>) -> Vec<String>{
     let up_left = (index.0 - 1, index.1 - 1);
     let up_right = (index.0 - 1, index.1 + 1); 
 
-    if (other_functions::get_color(piece).as_str() == "b") && get_position_index(piece, board).0 == 1{
+    if (other_functions::get_color(piece).as_str() == "b") && get_position_index(piece, board).0 == 1
+    && does_not_land_on_own(piece, first_down, board){
         valid_moves.push(other_functions::index_to_letter(first_down)); 
     }
-    if (other_functions::get_color(piece).as_str() == "w") && get_position_index(piece, board).0 == 6{
+    if (other_functions::get_color(piece).as_str() == "w") && get_position_index(piece, board).0 == 6 
+    && does_not_land_on_own(piece, first_up, board){
         valid_moves.push(other_functions::index_to_letter(first_up)); 
     }
     
@@ -327,24 +329,20 @@ pub fn pawn_moves(piece: &str, board: &Vec<Vec<String>>) -> Vec<String>{
     
 }
 
-fn is_within_bounds(index: (i32, i32)) -> bool {
+pub fn is_within_bounds(index: (i32, i32)) -> bool {
     let max = (7,7);
     let min = (0,0);
     index.0 >= min.0 && index.0 <= max.0 && index.1 >= min.1 && index.1 <= max.1 
 }
 
-fn does_not_land_on_own(piece: &str, move_to: (i32, i32), board: &Vec<Vec<String>>) -> bool {
+pub fn does_not_land_on_own(piece: &str, move_to: (i32, i32), board: &Vec<Vec<String>>) -> bool {
     &board[move_to.0 as usize][move_to.1 as usize][0..1] != other_functions::get_color(piece).as_str()
 } 
-fn does_not_land_on_other(piece: &str, move_to: (i32, i32), board: &Vec<Vec<String>>) -> bool {
+pub fn does_not_land_on_other(piece: &str, move_to: (i32, i32), board: &Vec<Vec<String>>) -> bool {
     &board[move_to.0 as usize][move_to.1 as usize][0..1] != get_opposite_color(piece).as_str()
 } 
 
-//Om piece color = vit -> vitas drag
-//Kolla vilken ruta vit kung är på
-//Kolla alla svarta pjäsers valid moves
-//Om vit kung ruta == valid move hos svart pjäs
-//Vit är i schack
+
 pub fn is_in_check(piece: &str, board: &Vec<Vec<String>>) -> bool{
 
     let mut is_in_check = false;
@@ -364,7 +362,7 @@ pub fn is_in_check(piece: &str, board: &Vec<Vec<String>>) -> bool{
 
 
     let pieces_to_try: Vec<String> 
-    = get_pieces_of_certain_color(&king_of_opposite_color, board); //Maybe should be opposite
+    = get_pieces_of_certain_color(&king_of_opposite_color, board); 
 
     //Does king need to be tested?
     //pieces_to_try.retain(|x| x != "wKI");
@@ -374,7 +372,7 @@ pub fn is_in_check(piece: &str, board: &Vec<Vec<String>>) -> bool{
 
     for p in pieces_to_try {
         //println!("Piece to try for is_in_check: {p}"); //For testing
-        for move_to in other_functions::valid_moves(&p, board){ //Detta blir rekursivt
+        for move_to in other_functions::valid_moves(&p, board){ 
             let move_to_index = letter_to_index(move_to.as_str());
             let piece_at_move_to: &String 
             = get_piece_at(board, move_to_index.0 as usize, move_to_index.1 as usize);
@@ -393,11 +391,8 @@ pub fn is_in_check(piece: &str, board: &Vec<Vec<String>>) -> bool{
 
 }
 
-//Kolla is in schack på vit pjäs, om true -> vit är i schack och måste göra något
-//För varje vit pjäs prova alla valid moves på en temp board
-//Kolla is in schack på vit pjäs -> se om fortfarande i schack
-//Om inte i schack, detta move solvar schack
-fn solves_check_piece(piece: &str, board: &Vec<Vec<String>>) -> bool { //Ska bara kolla för en piece?
+
+pub fn solves_check_piece(piece: &str, board: &Vec<Vec<String>>) -> bool { 
     let mut solves_check = false;
     let mut temp_board: Vec<Vec<String>> = board.clone();
     let index_move_from = get_position_index(piece, board);
@@ -466,7 +461,7 @@ pub fn solves_check_move(piece: &str, board: &Vec<Vec<String>>, mov: String) -> 
         solves_check = true;
     }
 
-    //Reverse move  -> probably not neccesary
+    //Reverse move  -> probably not neccesary since we only do one move
     temp_board[index_move_from.0 as usize][index_move_from.1 as usize] = piece.to_string();
     temp_board[index_move_to.0 as usize][index_move_to.1 as usize] = piece_at_move_to.to_string();
 
@@ -479,13 +474,13 @@ pub fn solves_check_move(piece: &str, board: &Vec<Vec<String>>, mov: String) -> 
 }
 
 
-fn get_pieces_of_certain_color(piece: &str, board: &Vec<Vec<String>>) -> Vec<String> {
+pub fn get_pieces_of_certain_color(piece: &str, board: &Vec<Vec<String>>) -> Vec<String> {
     let pieces_to_check: Vec<String> = board.iter().flat_map(|row| row.iter())
     .filter(|&x| x[0..1] == other_functions::get_color(piece)).map(|y| y.to_string()).collect();
     pieces_to_check
 }
 
-fn get_opposite_color(piece: &str) -> String{
+pub fn get_opposite_color(piece: &str) -> String{
     let mut opposite_color = String::new();
     if other_functions::get_color(piece) == "w"{
         opposite_color.push_str("b");
