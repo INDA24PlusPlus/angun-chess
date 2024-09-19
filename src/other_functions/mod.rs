@@ -3,15 +3,11 @@ use crate::valid_moves::{self, is_in_check, solves_check_move, solves_check_all_
 };
 const BOARD_SIZE: usize = 8;
 
+
+//Used for tesing visually
 pub fn run_chess(){
-    //Format för index
-    //row, col
 
-    //Format för färg
-    //Svart uppe, vit nere
-
-
-    //Skapa svarta/vita pjäser 
+    //Create pieces
     let black_pieces: Vec<&str> = vec![
         "bR1", "bK1", "bB1", "bKI", "bQU", "bB2", "bK2", "bR2", 
         "bP1", "bP2", "bP3", "bP4", "bP5", "bP6", "bP7", "bP8"
@@ -22,7 +18,10 @@ pub fn run_chess(){
         "wP1", "wP2", "wP3", "wP4", "wP5", "wP6", "wP7", "wP8"
     ];
 
+    //Set turn order
     let mut whites_turn_to_move = true;
+
+    //Initilize board
     let mut board: Vec<Vec<String>> = vec![vec!["   ".to_string(); BOARD_SIZE]; BOARD_SIZE];
     for i in 0..8{
         board[0][i] = black_pieces.get(i)
@@ -39,14 +38,10 @@ pub fn run_chess(){
     }
     
 
-    loop{    
+    //The chess-loop itself
+    loop{   
         
-    
-        //Användardialog + input ------------
-    
-
-        
-        //Kollar turordning 
+        //Checking turn order
         if whites_turn_to_move {
             println!("\nWhites turn to move.");
         }
@@ -54,14 +49,14 @@ pub fn run_chess(){
             println!("\nBlacks turn to move.");
         }
 
-        //Kör is_in_check
-        //if is_in_check {valid_pieces tar hänsyn till solves_check_all_pieces}
-
     
-        //Kollar vilka pjäser som kan flyttas
+        //Checking which pieces can be moved
         let mut avalible_pieces_string: Vec<String> = Vec::new();
         let mut temp_piece = String::new();
 
+
+        //Using temporary piece to use in functions
+        //Its mostly to determine color
         if whites_turn_to_move {
             temp_piece.push_str("wKI");
         }
@@ -69,13 +64,15 @@ pub fn run_chess(){
             temp_piece.push_str("bKI");
         }
 
+        //Setting variable for check, to not have to use the function
         let mut is_in_check = false;
         if valid_moves::is_in_check(&temp_piece, &board) {
             is_in_check = true;
         }
 
+        //Determining valid pieces based on check
         if is_in_check {
-            avalible_pieces_string= valid_pieces(whites_turn_to_move, &board, true);
+            avalible_pieces_string = valid_pieces(whites_turn_to_move, &board, true);
             if whites_turn_to_move {
                 println!("      White is in Check!");
             }
@@ -89,6 +86,7 @@ pub fn run_chess(){
 
         let avalible_pieces: Vec<&str> = avalible_pieces_string.iter().map(|s| s.as_str()).collect();
 
+        //Having checkmate here seemed easiest because avalible_pieces is close
         if avalible_pieces.is_empty() && whites_turn_to_move{
             println!("      Checkmate!");
             println!("      Black wins!");
@@ -101,7 +99,7 @@ pub fn run_chess(){
         }
 
 
-
+        //Print out valid pieces
         println!("These are the avalible pieces:");
         for i in 0..avalible_pieces.len(){
             let to_print = avalible_pieces.get(i)
@@ -110,17 +108,33 @@ pub fn run_chess(){
         }
     
     
-        
-        println!("\nWhich one do you want to move?"); //Måste ha felhantering här, så man skriver en valid piece
+        //Take input for which piece to move
+        println!("\nWhich one do you want to move?"); 
         let mut input_piece = String::new();
+
+        //Error handling for input_piece
+        loop {
+            input_piece.clear();       
     
         io::stdin().read_line(&mut input_piece).expect("Failed to read line.");
+            
+        let piece_inside_loop = input_piece.split_whitespace().collect::<String>();
+
+        if !avalible_pieces.contains(&piece_inside_loop.as_str()) {
+            println!("The answer you supplied does not match a valid piece. Please try again.");
+        }
+        else{
+            break;
+        }
         
+        }
         let piece_to_move: String = input_piece.split_whitespace().collect::<String>();
+        
         
     
         println!("These are the positions you can move it to: ");
 
+        //If check -> filter out positions that do not solve check
         let mut moves = Vec::new();
         moves = valid_moves(piece_to_move.as_str(), &board);
 
@@ -133,28 +147,45 @@ pub fn run_chess(){
         else {
             moves_to_print = moves;
         }
-        
+
+
+        //Print valid positions
+        let avalible_positions: Vec<&str> = moves_to_print.iter().map(|s| s.as_str()).collect();
+
+        for i in 0..avalible_positions.len(){
+            let to_print = avalible_positions.get(i)
+            .expect("Index out of bounds for vector avalible_pieces");
+            print!("{to_print} ");
+        }
     
-        print_valid_moves(moves_to_print);
     
-    
-    
+        //Take input on where to move the piece
         println!("\nWhere do you want to move?");
     
         let mut input_where_to = String::new();
+
+
+        //Error handling for input_where_to
+        loop {
+            input_where_to.clear();       
     
         io::stdin().read_line(&mut input_where_to).expect("Failed to read line.");
+            
+        let position_inside_loop = input_where_to.split_whitespace().collect::<String>();
+
+        if !moves_to_print.contains(&position_inside_loop) {
+            println!("The answer you supplied does not match a position. Please try again.");
+        }
+        else{
+            break;
+        }
+        
+        }
     
         let where_to_move: &str = &input_where_to.split_whitespace().collect::<Vec<&str>>()[0];
     
-        //Slut användardialog + input ------------
-    
 
-
-      
-    
-        //Detta måste vara i huvudfunktionen pga
-        //lånade värden (board) kan ej ändras
+        //Moving piece
         let move_from = get_position_index(piece_to_move.as_str(), &board);
         let move_to = letter_to_index(where_to_move);
         board[move_from.0 as usize][move_from.1 as usize] = "   ".to_string();
@@ -165,7 +196,7 @@ pub fn run_chess(){
 
     
     
-        //Ändra turordning
+        //Change turns
         whites_turn_to_move = !whites_turn_to_move;
 
         
@@ -232,7 +263,7 @@ pub fn index_to_letter(index: (i32, i32)) -> String{
 
 }
 
-pub fn valid_moves(piece_to_move: &str,board: &Vec<Vec<String>>) -> Vec<String> {
+pub fn valid_moves(piece_to_move: &str, board: &Vec<Vec<String>>) -> Vec<String> {
 
    let valid_positions = match piece_to_move {
        "wR1" | "wR2" | "bR1" | "bR2" => valid_moves::rook_moves(piece_to_move, board),
@@ -247,18 +278,8 @@ pub fn valid_moves(piece_to_move: &str,board: &Vec<Vec<String>>) -> Vec<String> 
    valid_positions
 
 }
-
-fn print_valid_moves(valid_moves: Vec<String>){
-    let avalible_positions: Vec<&str> = valid_moves.iter().map(|s| s.as_str()).collect();
-
-    for i in 0..avalible_positions.len(){
-        let to_print = avalible_positions.get(i)
-        .expect("Index out of bounds for vector avalible_pieces");
-        print!("{to_print} ");
-    }
-}
     
-fn print_board(board: &Vec<Vec<String>>){
+pub fn print_board(board: &Vec<Vec<String>>){
     for i in 0..BOARD_SIZE{
         for j in 0..BOARD_SIZE{
             let to_print = &get_piece_at(&board, i, j);
@@ -272,7 +293,7 @@ fn print_board(board: &Vec<Vec<String>>){
     }
 }
 
-fn valid_pieces(whites_turn_to_move: bool, board: &Vec<Vec<String>>, is_in_check: bool) -> Vec<String> { //De som har minst ett valid move
+pub fn valid_pieces(whites_turn_to_move: bool, board: &Vec<Vec<String>>, is_in_check: bool) -> Vec<String> { //De som har minst ett valid move
     let mut valid_pieces = Vec::new();
 
     if is_in_check{
@@ -317,5 +338,7 @@ fn valid_pieces(whites_turn_to_move: bool, board: &Vec<Vec<String>>, is_in_check
 }
 
 pub fn get_piece_at(board: &Vec<Vec<String>>, row: usize, col: usize) -> &String {
-    &board[row][col] // Return a reference to the piece at the given position
+    &board[row][col] 
 }
+
+
